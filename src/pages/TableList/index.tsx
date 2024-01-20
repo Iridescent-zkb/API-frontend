@@ -15,6 +15,7 @@ import { Button, Drawer, Input, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
+import {listInterfaceInfoByPageUsingGET} from "@/services/API-backend/interfaceInfoController";
 
 /**
  * @en-US Add node
@@ -105,34 +106,57 @@ const TableList: React.FC = () => {
    * */
 
   const columns: ProColumns<API.RuleListItem>[] = [
+    {title: 'id',
+      dataIndex: 'id',
+      valueType: 'index',
+    },
     {
-      title: '规则名称',
+      title: '接口名称',
+      //name对应后端的字段名
       dataIndex: 'name',
-      tip: 'The rule name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      // 展示文本
+      valueType: 'text'
+      // tip: 'The rule name is the unique key',
+      // render: (dom, entity) => {
+      //   return (
+      //     <a
+      //       onClick={() => {
+      //         setCurrentRow(entity);
+      //         setShowDetail(true);
+      //       }}
+      //     >
+      //       {dom}
+      //     </a>
+      //   );
+      // },
     },
     {
       title: '描述',
-      dataIndex: 'desc',
+      //description对应后端的字段名
+      dataIndex: 'description',
+      // 展示的文本为富文本编辑器
       valueType: 'textarea',
     },
     {
-      title: '服务调用次数',
-      dataIndex: 'callNo',
-      sorter: true,
-      hideInForm: true,
-      renderText: (val: string) => `${val}${'万'}`,
+      title: '请求方法',
+      dataIndex: 'method',
+      // 展示的文本为富文本编辑器
+      valueType: 'text',
+    },
+    {
+      title: '接口地址',
+      dataIndex: 'url',
+      valueType: 'text',
+    },
+    {
+      title: '请求头',
+      dataIndex: 'requestHeader',
+      valueType: 'textarea',
+    },
+    {
+      title: '响应头',
+      dataIndex: 'responseHeader',
+      valueType: 'textarea',
     },
     {
       title: '状态',
@@ -144,34 +168,20 @@ const TableList: React.FC = () => {
           status: 'Default',
         },
         1: {
-          text: '运行中',
+          text: '开启',
           status: 'Processing',
-        },
-        2: {
-          text: '已上线',
-          status: 'Success',
-        },
-        3: {
-          text: '异常',
-          status: 'Error',
         },
       },
     },
     {
-      title: '上次调度时间',
-      sorter: true,
-      dataIndex: 'updatedAt',
+      title: '创建时间',
+      dataIndex: 'createTime',
       valueType: 'dateTime',
-      renderFormItem: (item, { defaultRender, ...rest }, form) => {
-        const status = form.getFieldValue('status');
-        if (`${status}` === '0') {
-          return false;
-        }
-        if (`${status}` === '3') {
-          return <Input {...rest} placeholder={'请输入异常原因！'} />;
-        }
-        return defaultRender(item);
-      },
+    },
+    {
+      title: '更新时间',
+      dataIndex: 'updateTime',
+      valueType: 'dateTime',
     },
     {
       title: '操作',
@@ -213,7 +223,18 @@ const TableList: React.FC = () => {
             <PlusOutlined /> 新建
           </Button>,
         ]}
-        request={rule}
+        request={async (params, sort: Record<string, SortOrder>, filter: Record<string, React.ReactText[] | null>) => {
+          const res = await listInterfaceInfoByPageUsingGET({
+            ...params
+          })
+          if (res?.data) {
+            return  {
+              data: res?.data.records || [],
+              success: true,
+              total: res.total,
+            }
+          }
+        }}
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
