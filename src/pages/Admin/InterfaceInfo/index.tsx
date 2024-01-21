@@ -12,11 +12,11 @@ import { Button, Drawer, message } from 'antd';
 import React, { useRef, useState } from 'react';
 import {
   addInterfaceInfoUsingPOST, deleteInterfaceInfoUsingPOST,
-  listInterfaceInfoByPageUsingGET,
+  listInterfaceInfoByPageUsingGET, offlineInterfaceInfoUsingPOST, onlineInterfaceInfoUsingPOST,
   updateInterfaceInfoUsingPOST,
 } from '@/services/API-backend/interfaceInfoController';
-import CreateModal from '@/pages/InterfaceInfo/components/CreateModal';
-import UpdateModal from '@/pages/InterfaceInfo/components/UpdateModal';
+import CreateModal from '@/pages/Admin/InterfaceInfo/components/CreateModal';
+import UpdateModal from '@/pages/Admin/InterfaceInfo/components/UpdateModal';
 import { err } from 'pino-std-serializers';
 
 const TableList: React.FC = () => {
@@ -85,7 +85,70 @@ const TableList: React.FC = () => {
       return false;
     }
   };
+  /**
+   *  Delete node
+   * @zh-CN 发布节点
+   *
+   * @param selectedRows
+   */
+  const handleOnline = async (record: API.IdRequest) => {
+    // 显示正在发布的加载提示
+    const hide = message.loading('发布中');
+    // 如果接口数据为空，直接返回true
+    if (!record) return true;
+    try {
+      // 调用发布接口的POST请求方法
+      await onlineInterfaceInfoUsingPOST({
+        // 传递接口的id参数
+        id: record.id
+      });
+      hide();
+      // 显示操作成功的提示信息
+      message.success('操作成功');
+      // 重新加载数据
+      actionRef.current?.reload();
+      // 返回true表示发布成功
+      return true;
+    } catch (error: any) {
+      hide();
+      // 显示操作失败的错误提示信息
+      message.error('操作失败，' + error.message);
+      // 返回false表示发布失败
+      return false;
+    }
+  };
 
+  /**
+   * 下线接口
+   *
+   * @param record
+   */
+  const handleOffline = async (record: API.IdRequest) => {
+    // 显示正在下线的加载提示
+    const hide = message.loading('发布中');
+    // 如果接口数据为空，直接返回true
+    if (!record) return true;
+    try {
+      // 调用下线接口的POST请求方法
+      await offlineInterfaceInfoUsingPOST({
+        // 传递接口的id参数
+        id: record.id
+      });
+      hide();
+      // 显示操作成功的提示信息
+      message.success('操作成功');
+      // 重新加载数据
+      actionRef.current?.reload();
+      // 返回true表示下线成功
+      return true;
+    } catch (error: any) {
+      hide();
+      // 显示操作失败的错误提示信息
+      message.error('操作失败，' + error.message);
+      // 返回false表示下线失败
+      return false;
+    }
+  };
   /**
    *  Delete node
    * @zh-CN 删除节点
@@ -200,14 +263,36 @@ const TableList: React.FC = () => {
         >
           修改
         </a>,
+        record.status === 0 ?
         <a
+          key="online"
+          onClick={() => {
+            handleOnline(record);
+          }}
+        >
+          发布
+        </a> : null,
+        record.status === 1 ?
+        <Button
+          type= "text"
+          danger
+          key="offline"
+          onClick={() => {
+            handleOffline(record);
+          }}
+        >
+          下线
+        </Button> : null,
+        <Button
+          type= "text"
+          danger
           key="config"
           onClick={() => {
             handleRemove(record);
           }}
         >
           删除
-        </a>,
+        </Button>,
 
       ],
     },

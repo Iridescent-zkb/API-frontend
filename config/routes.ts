@@ -9,7 +9,7 @@
     routes: [
       // { path: '/admin', redirect: '/admin/sub-page' },
       // { path: '/admin/sub-page', component: './Admin' },
-      { name: '接口管理', icon: 'table', path: '/admin/interface_info', component: './InterfaceInfo' },
+      { name: '接口管理', icon: 'table', path: '/admin/interface_info', component: './Admin/InterfaceInfo' },
     ],
   },
   // { icon: 'table', path: '/list', component: './TableList',name:'表格页'},
